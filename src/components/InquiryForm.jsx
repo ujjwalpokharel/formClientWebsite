@@ -26,26 +26,43 @@ const InquiryForm = (props) => {
       setFormId(responseData?.id);
     }
   }, [responseData]);
-
+console.log("formfields",formFields);
   const onFinish = async (values) => {
     const formData = new FormData();
     let entityId;
     Object.keys(values).forEach((key) => {
       if (key !== "signature" && values[key] !== undefined) {
-        formData.append(key, values[key]);
+        const val = values[key];
+
+        if (Array.isArray(val)) {
+          // Append each array item separately
+          val.forEach((item) => formData.append(key, item));
+        } else {
+          formData.append(key, val);
+        }
       }
     });
+    console.log("formData", formData);
     if (values.signature) {
       formData.append("signatureImage", values.signature);
     }
     const formDataObj = {};
     formData.forEach((value, key) => {
-      formDataObj[key] = value;
+      console.log(value);
+      if (formDataObj[key]) {
+        if (Array.isArray(formDataObj[key])) {
+          formDataObj[key].push(value);
+        } else {
+          formDataObj[key] = [formDataObj[key], value];
+        }
+      } else {
+        formDataObj[key] = value;
+      }
     });
     try {
       const inquiriesurl = `${apiUrl}/${prefix}/inquiries`;
       const inquiryValues = {
-       inquirerFirstName: values.inquirerFirstName,
+        ...values,
       };
       const inquiryResponse = await axios.post(inquiriesurl, inquiryValues, {
         headers,
@@ -61,6 +78,7 @@ const InquiryForm = (props) => {
         ...(entityId && { entityId }),
         orgId: organisationId ? Number(organisationId) : null,
       };
+      console.log("allvalues", allValues);
       await axios.post(formSubmissionsUrl, allValues, { headers });
       openNotification(`Successfully Added.`);
       form.resetFields();

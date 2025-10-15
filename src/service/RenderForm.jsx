@@ -18,11 +18,12 @@ export const renderFormItem = (
     addonBefore,
     valueField,
     labelField,
+    mappingField,
   } = field;
   const commonProps = {
     key: name,
     label,
-    name,
+    name: mappingField ? mappingField : name,
     rules: rules || [],
     placeholder,
   };
